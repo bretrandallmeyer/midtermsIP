@@ -1,7 +1,10 @@
 import java.io.IOException;
+import java.awt.Color;
+import java.awt.Graphics;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.net.URL;
+import javax.swing.JComponent;
 
 public class Monster{
 	
@@ -44,6 +47,7 @@ public class Monster{
 
 		animate(comp);
 	}
+
 	public void animate(Draw compPass){
 		Thread monThread = new Thread(new Runnable(){
 			public void run(){

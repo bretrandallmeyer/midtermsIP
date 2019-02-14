@@ -15,24 +15,28 @@ public class Draw extends JComponent{
 	public URL resource = getClass().getResource("run0.png");
 
 	// circle's position
-	public int x = 30;
-	public int y = 30;
+	public int x = 70;
+	public int y = 250;
 	public int height = 0;
 	public int width = 0;
 
 	// animation states
 	public int state = 0;
 
+	// randomizer
+	public Random randomizer;
+
+	// enemy
 	public int enemyCount;
 	Monster[] monsters = new Monster[10];
 
 	public Draw(){
 		randomizer = new Random();
 		spawnEnemy();
-
+		
 		try{
 			image = ImageIO.read(resource);
-			backgroundImage = ImageIO.read(getClass().getResource("background.jpg"));
+			backgroundImage = ImageIO.read(getClass().getResource("background.gif"));
 		}
 		catch(IOException e){
 			e.printStackTrace();
@@ -127,6 +131,51 @@ public class Draw extends JComponent{
 						e.printStackTrace();
 					}
 				}
+
+				for(int x=0; x<monsters.length; x++){
+					if(monsters[x]!=null){
+						if(monsters[x].contact){
+							monsters[x].life = monsters[x].life - 10;
+						}
+					}
+				}
+			}
+		});
+		thread1.start();
+	}
+
+	public void ultimateAnimation(){
+		Thread thread1 = new Thread(new Runnable(){
+			public void run(){
+				for(int ctr = 0; ctr < 4; ctr++){
+					try {
+						if(ctr==3){
+							resource = getClass().getResource("run0.png");
+						}
+						else{
+							resource = getClass().getResource("ultimate"+ctr+".png");
+						}
+						
+						try{
+							image = ImageIO.read(resource);
+						}
+						catch(IOException e){
+							e.printStackTrace();
+						}
+				        repaint();
+				        Thread.sleep(100);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+
+				for(int x=0; x<monsters.length; x++){
+					if(monsters[x]!=null){
+						if(monsters[x].contact){
+							monsters[x].life = monsters[x].life - 30;
+						}
+					}
+				}
 			}
 		});
 		thread1.start();
@@ -136,28 +185,77 @@ public class Draw extends JComponent{
 		attackAnimation();
 	}
 
+	public void ultimate(){
+		ultimateAnimation();
+	}
+
 	public void moveUp(){
 		y = y - 5;
 		reloadImage();
 		repaint();
+		checkCollision();
 	}
 
 	public void moveDown(){
 		y = y + 5;
 		reloadImage();
 		repaint();
+		checkCollision();
 	}
 
 	public void moveLeft(){
 		x = x - 5;
 		reloadImage();
 		repaint();
+		checkCollision();
 	}
 
 	public void moveRight(){
 		x = x + 5;
 		reloadImage();
 		repaint();
+		checkCollision();
+	}
+
+	public void checkCollision(){
+		int xChecker = x + width;
+		int yChecker = y;
+
+		for(int x=0; x<monsters.length; x++){
+			boolean collideX = false;
+			boolean collideY = false;
+
+			if(monsters[x]!=null){
+				monsters[x].contact = false;
+
+				if(yChecker > monsters[x].yPos){
+					if(yChecker-monsters[x].yPos < monsters[x].height){
+						collideY = true;
+					}
+				}
+				else{
+					if(monsters[x].yPos - yChecker < monsters[x].height){
+						collideY = true;
+					}
+				}
+
+				if(xChecker > monsters[x].xPos){
+					if(xChecker-monsters[x].xPos < monsters[x].width){
+						collideX = true;
+					}
+				}
+				else{
+					if(monsters[x].xPos - xChecker < 5){
+						collideX = true;
+					}
+				}
+			}
+
+			if(collideX && collideY){
+				System.out.println("collision!");
+				monsters[x].contact = true;
+			}
+		}
 	}
 	
 	public void paintComponent(Graphics g){
@@ -165,8 +263,14 @@ public class Draw extends JComponent{
 		g.setColor(Color.YELLOW);
 		g.drawImage(backgroundImage, 0, 0, this);
 		g.drawImage(image, x, y, this);
+		
+		for(int c = 0; c < monsters.length; c++){
+			if(monsters[c]!=null){
 
-		g.drawImage(monster1.image, monster1.xPos, monster1.yPos, this);
-		g.drawImage(monster2.image, monster2.xPos, monster2.yPos, this);
+				g.drawImage(monsters[c].image, monsters[c].xPos, monsters[c].yPos, this);
+				g.setColor(Color.GREEN);
+				g.fillRect(monsters[c].xPos+7, monsters[c].yPos, monsters[c].life, 2);
+			}	
+		}
 	}
 }
